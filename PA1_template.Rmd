@@ -5,7 +5,10 @@ output:
   html_document:
     keep_md: true
 ---
-
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=6, fig.height=3, fig.path='figure/',
+                      echo=TRUE, warning=FALSE, message=FALSE)
+```
 
 ## Loading and preprocessing the data
 First, load the required libaries.  
@@ -23,12 +26,32 @@ data <- tbl_df(data)
 
 
 ## What is mean total number of steps taken per day?
+Note: *In this analysis, the missing values are ignored.*
+```{r}
+dataByDay <- data %>% filter(!is.na(steps)) %>% group_by(date) %>% summarize(dailyTotal=sum(steps))
+dailyMean <- mean(dataByDay$dailyTotal)
+dailyMedian <- median(dataByDay$dailyTotal)
+```
+### Histogram of Daily Steps
+```{r "dailyHistogram"}
+ggplot(dataByDay, aes(dailyTotal)) + geom_histogram()
+```
 
-
+### Mean and median
+The mean total number of steps is `r formatC(mean(dataByDay$dailyTotal), format="f", digits=1)`, and the median is `r median(dataByDay$dailyTotal)`.
 
 ## What is the average daily activity pattern?
+Note: *In this analysis, the missing values are ignored.*
+```{r }
+dataByInterval <- data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarize(intervalAvg=mean(steps))
+intervalMax <- max(dataByInterval$intervalAvg)
+topInterval <- top_n(dataByInterval, 1, intervalAvg)
+```
+```{r "intervalLinegraph"}
+ggplot(dataByInterval, aes(interval, intervalAvg)) + geom_line()
+```
 
-
+Interval # `r topInterval$interval` has the highest average, with a value of `r topInterval$intervalAvg`
 
 ## Imputing missing values
 
@@ -36,7 +59,7 @@ data <- tbl_df(data)
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-####Clean-up
-```{r}
-remove(data)
+
+```{r echo=FALSE}
+remove(data, dataByDay, dataByInterval, dailyMean, dailyMedian, intervalMax)
 ```
