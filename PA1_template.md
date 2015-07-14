@@ -1,0 +1,39 @@
+# Reproducible Research: Peer Assessment 1
+Rob Rolleston  
+
+
+## Loading and preprocessing the data
+First, load the required libaries.  
+Second, read the raw ZIP file, convert the date strings to date objects, and leave missing values as "NA".  
+Finally, convert the data table into a dplyr table.
+The data will reside in a dplyr table: "data".
+
+```r
+library(ggplot2, quietly = TRUE, verbose=FALSE, warn.conflicts = FALSE)
+library(dplyr, quietly = TRUE, verbose=FALSE, warn.conflicts = FALSE)
+
+data <- read.csv(unz("activity.zip", "activity.csv"), stringsAsFactors = FALSE)
+data$date <- as.Date(data$date, format="%Y-%m-%d")
+data <- tbl_df(data)
+```
+
+
+## What is mean total number of steps taken per day?
+
+
+
+## What is the average daily activity pattern?
+
+
+
+## Imputing missing values
+
+
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+####Clean-up
+
+```r
+remove(data)
+```
