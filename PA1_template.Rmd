@@ -54,12 +54,64 @@ ggplot(dataByInterval, aes(interval, intervalAvg)) + geom_line()
 Interval # `r topInterval$interval` has the highest average, with a value of `r topInterval$intervalAvg`
 
 ## Imputing missing values
+```{r }
+dataNA <- data %>% filter(is.na(steps))
+countNA <- nrow(dataNA)
+```
+The original data set has `r countNA` missing vlaues for steps.  These missing values will be imputed by
 
+1. split the original data set into two parts, those rows without and with NA values
+    + NOTE: the unknown values are captured above in the dataframe `dataNA`
+2. using the known values, calcualte the average steps per 5-min interval
+    + NOTE: this was already done above, to create the dataframe `dataByInterval`
+3. use the average number of steps (rounded) from the known data to replace the NA for the corresponding 5-min interval
+4. create a complete data frame (`dataImputed`) with no missing values by `bind_rows` of the two data frames
+
+```{r}
+dataKnown <- data %>% filter(!is.na(steps))
+dataKnownByInterval <- dataKnown %>% group_by(interval) %>% summarize(intervalAvg=mean(steps))
+dataNAImputed <- left_join(dataNA, dataKnownByInterval, by = "interval")
+dataNAImputed$steps <- round(dataNAImputed$intervalAvg)
+dataNAImputed <- select(dataNAImputed, -intervalAvg)
+dataNew <- bind_rows(dataNAImputed, dataKnown) %>% arrange(date, interval)
+```
+
+This new data set indeed has `r nrow(dataNew)` rows, the same as hte orignal data set with `r nrow(dataNew)` rows.
+There are `r sum(is.na(dataNew))` NA values.
+
+### Histogram of Daily Steps using imputed data
+```{r}
+dataNewByDay <- dataNew %>% filter(!is.na(steps)) %>% group_by(date) %>% summarize(dailyTotal=sum(steps))
+dailyMeanNew <- mean(dataNewByDay$dailyTotal)
+dailyMedianNew <- median(dataNewByDay$dailyTotal)
+```
+
+```{r "dailyHistogramNew"}
+ggplot(dataNewByDay, aes(dailyTotal)) + geom_histogram()
+```
+
+### Mean and median
+Using the imputed data, the mean total number of steps is `r formatC(mean(dataNewByDay$dailyTotal), format="f", digits=1)`, and the median is `r as.integer(median(round(dataNewByDay$dailyTotal)))`.  
+These values differ from the orginal data set (where the NAs were dropped) by mean: `r formatC(dailyMeanNew-dailyMean, format="f", digits=1)` and median: `r dailyMedianNew -dailyMedian`.
+
+**Summary** Imputing the missing data resulted in more total counts in the histogram, with a small visible change in appearance.  Both the mean and median decreased slightly. 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+weekendAbrev <- c("Sat", "Sun")
+dataNew$Day <- weekdays(dataNew$date, abbreviate=TRUE)
+dataNew$dayType <- factor(ifelse(dataNew$Day %in% weekendAbrev, 'weekend', 'weekday'))
 
+dataNewByDaytypeByInterval <- dataNew %>% group_by(dayType,interval) %>% summarize(intervalAvg=mean(steps))
+```
+```{r "intervalByDayTypeLinegraph"}
+ggplot(dataNewByDaytypeByInterval, aes(interval, intervalAvg)) + geom_line() + facet_grid(dayType~.)
+```
 
 ```{r echo=FALSE}
 remove(data, dataByDay, dataByInterval, dailyMean, dailyMedian, intervalMax)
+remove(dataNA, dataNAImputed, dataKnown, dataKnownByInterval)
+remove(dataNew, dataNewByDay, topInterval, countNA, dailyMeanNew, dailyMedianNew)
+remove(weekendAbrev, dataNewByDaytypeByInterval)
 ```
