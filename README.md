@@ -1,4 +1,4 @@
-*__ See PA1_template.md for my submission __*
+_** See PA1\_template.md for my submission **_
 
 ## Introduction
 
