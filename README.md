@@ -1,3 +1,5 @@
+*__ See PA1_template.md for my submission __*
+
 ## Introduction
 
 It is now possible to collect a large amount of data about personal
